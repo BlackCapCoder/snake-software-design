@@ -12,7 +12,7 @@ namespace SnakeMess
 
   class SnakeMess
   {
-    public static void Main(string[] arguments)
+    public static void Main()
     {
       int         newDir = 2;
       bool        pause  = false;
@@ -28,33 +28,29 @@ namespace SnakeMess
       Console.Clear();
       Console.CursorVisible = false;
       Console.Title = "Høyskolen Kristiania - SNAKE";
-      put(snake.First(), ConsoleColor.Green, "@");
       spawn();
 
       while (true) {
-        ConsoleKey cki = Console.KeyAvailable? Console.ReadKey(true).Key: 0;
-        if (cki == ConsoleKey.Escape) break;
-        pause ^= cki == ConsoleKey.Spacebar;
+        ConsoleKey k = Console.KeyAvailable? Console.ReadKey(true).Key: 0;
         for (int i = 0; i < 4; i++)
-          if ((int) cki == (40 - (i*7)%4) && newDir != i) newDir = (2+i)%4;
-
-        if (pause || t.ElapsedMilliseconds < 100) continue;
-        t.Restart();
+          if ((int) k == (40 - (i*7)%4) && newDir != i) newDir = (2+i)%4;
 
         Point newH = new Point { X=snake.Last().X-((newDir-1)*3-1)%2, Y=snake.Last().Y+(newDir*3-1)%2 };
 
-        if ( newH.X < 0 || newH.X >= boardW
+        if ( k == ConsoleKey.Escape
+          || newH.X < 0 || newH.X >= boardW
           || newH.Y < 0 || newH.Y >= boardH
           || hit(newH)
            ) break;
 
+        if ((pause ^= k == ConsoleKey.Spacebar) || t.ElapsedMilliseconds < 100) continue;
+        t.Restart();
+
         if (newH.X == app.X && newH.Y == app.Y)
           spawn(); else snake.RemoveAt(0);
 
-        put(snake.Last(), ConsoleColor.Yellow, "0");
-        put(newH, ConsoleColor.Yellow, "@");
+        put(new[] {snake.Last(),newH,snake.First()}, ConsoleColor.Yellow, "0@ ");
         snake.Add(newH);
-        put(snake.First(), ConsoleColor.Yellow, " ");
       }
       bool hit (Point p) {
         foreach (Point x in snake) if (x.X == p.X && x.Y == p.Y) return true;
@@ -62,12 +58,14 @@ namespace SnakeMess
       }
       void spawn(){
         do { app.X = rng.Next(0, boardW); app.Y = rng.Next(0, boardH); } while (hit(app));
-        put(app, ConsoleColor.Green, "$");
+        put(new[] {app}, ConsoleColor.Green, "$");
       }
-      void put(Point p, ConsoleColor c, String s) {
+      void put(Point[] ps, ConsoleColor c, String s) {
         Console.ForegroundColor = c;
-        Console.SetCursorPosition(p.X, p.Y);
-        Console.Write(s);
+        for (int i=0; i<ps.Length; i++) {
+          Console.SetCursorPosition(ps[i].X, ps[i].Y);
+          Console.Write(s[i]);
+        }
       }
     }
   }
