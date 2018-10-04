@@ -32,37 +32,28 @@ namespace SnakeMess
       spawn();
 
       while (true) {
-        if (Console.KeyAvailable) {
-          ConsoleKeyInfo cki = Console.ReadKey(true);
-          if (cki.Key == ConsoleKey.Escape) break;
-          pause ^= cki.Key == ConsoleKey.Spacebar;
-          for (int i = 0; i < 4; i++)
-            if ((int) cki.Key == (40 - (i*7)%4) && newDir != i) newDir = (2+i)%4;
-        }
+        ConsoleKey cki = Console.KeyAvailable? Console.ReadKey(true).Key: 0;
+        if (cki == ConsoleKey.Escape) break;
+        pause ^= cki == ConsoleKey.Spacebar;
+        for (int i = 0; i < 4; i++)
+          if ((int) cki == (40 - (i*7)%4) && newDir != i) newDir = (2+i)%4;
 
         if (pause || t.ElapsedMilliseconds < 100) continue;
         t.Restart();
 
         Point newH = new Point { X=snake.Last().X-((newDir-1)*3-1)%2, Y=snake.Last().Y+(newDir*3-1)%2 };
 
-        bool q = newH.X == app.X && newH.Y == app.Y;
-
         if ( newH.X < 0 || newH.X >= boardW
           || newH.Y < 0 || newH.Y >= boardH
           || hit(newH)
-          || (q && snake.Count + 1 >= boardW * boardH)
            ) break;
+
+        if (newH.X == app.X && newH.Y == app.Y)
+          spawn(); else snake.RemoveAt(0);
 
         put(snake.Last(), ConsoleColor.Yellow, "0");
         put(newH, ConsoleColor.Yellow, "@");
         snake.Add(newH);
-
-        if (q) {
-          spawn();
-          continue;
-        }
-
-        snake.RemoveAt(0);
         put(snake.First(), ConsoleColor.Yellow, " ");
       }
       bool hit (Point p) {
